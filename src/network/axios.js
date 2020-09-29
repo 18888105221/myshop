@@ -7,8 +7,7 @@ export default function axios(option) {
             timeout:5000
         });
         instance.interceptors.request.use(config=>{
-
-
+            config.headers.Authorization = window.sessionStorage.getItem('token');
             return config;
         })
 
