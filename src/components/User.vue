@@ -33,7 +33,7 @@
                     <el-button type="primary" size="mini" icon="el-icon-edit" @click="showDialog(scope.row.id)"></el-button>
                     <el-button type="danger" size="mini" icon="el-icon-delete" @click="removeUserById(scope.row.id)"></el-button>
                     <el-tooltip :enterable="false" effect="dark" content="分配角色" placement="top">
-                        <el-button type="warning" size="mini" icon="el-icon-setting"></el-button>
+                        <el-button type="warning" size="mini"  @click="setRole(scope.row)" icon="el-icon-setting"></el-button>
                     </el-tooltip>
                 </template>
             </el-table-column>
@@ -95,11 +95,33 @@
                 <el-button type="primary" @click="editUserInfo">确 定</el-button>
             </span>
         </el-dialog>
+        <el-dialog
+                title="分配角色"
+                :visible.sync="setRoleDialogVisible"
+                width="50%">
+            <div>
+                <p>当前的用户：{{userInfo.username}}</p>
+                <p>当前的角色：{{userInfo.role_name}}</p>
+                <p>分配新角色角色：
+                    <el-select v-model="selectedRoled" placeholder="请选择">
+                        <el-option
+                                v-for="item in rolesList"
+                                :key="item.id"
+                                :label="item.roleName"
+                                :value="item.id">
+                        </el-option>
+                    </el-select></p>
+            </div>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="dialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="saveRoleInfo">确 定</el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 
 <script>
-    import {getUserList,userStateChanged,addUser,showEditDialog,editUserInfo,removeUserById} from "@/network/home";
+    import {saveRoleInfo,getUserRoles,getUserList,userStateChanged,addUser,showEditDialog,editUserInfo,removeUserById} from "@/network/home";
     export default {
         name: "User",
         data(){
@@ -167,6 +189,11 @@
                         {validator:checkMobile,trigger: 'blur'}
                     ],
                 },
+                setRoleDialogVisible:false,
+                //需要被分配角色的用户信息
+                userInfo:{},
+                rolesList:[],
+                selectedRoled:''
             }
         },
         created(){
@@ -267,6 +294,31 @@
                     this.getUserList();
                 })
             },
+            setRole(userInfo){
+                this.userInfo = userInfo;
+                getUserRoles().then(res=>{
+                    if (res.meta.status !== 200) {
+                        return this.$message.error('获取角色列表失败');
+                    }
+                    this.rolesList = res.data;
+                    this.setRoleDialogVisible = true;
+                    this.$message.success('获取成功');
+                })
+
+            },
+            saveRoleInfo(){
+                if(!this.selectedRoled){
+                    return this.$message.error('请选择要分配的角色')
+                }
+                saveRoleInfo(this.userInfo,this.selectedRoled).then(res=>{
+                    if (res.meta.status !== 200) {
+                        return this.$message.error('更新角色失败');
+                    }
+                    this.$message.success('更新成功');
+                    this.getUserList()
+                    this.setRoleDialogVisible=false;
+                })
+            }
         }
     }
 </script>

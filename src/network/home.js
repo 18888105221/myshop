@@ -51,3 +51,19 @@ export function removeUserById(id) {
         url:'users/'+id
     })
 }
+
+export function getUserRoles() {
+    return axios({
+        url:'roles'
+    })
+}
+
+export function saveRoleInfo(userInfo,selectedRole) {
+    return axios({
+        method:'put',
+        url:`users/${userInfo.id}/role`,
+        data:{
+            rid:selectedRole
+        }
+    })
+}
